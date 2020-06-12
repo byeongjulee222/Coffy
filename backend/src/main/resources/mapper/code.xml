@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper 
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"   
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ssafy.code">
+	<select id="getCodes" parameterType="java.lang.Integer"
+		resultType="com.ssafy.edu.vue.dto.Code">
+		select id, title, description, html, css, javascript,
+		writerid, created_at,
+		(select count(*) from likecode where
+		codeid=code.id) likes,
+		(select user.username from user where
+		code.writerid = user.id) writername
+		from code
+		order by id desc
+	</select>
+
+	<select id="getCode" parameterType="java.lang.Integer"
+		resultType="com.ssafy.edu.vue.dto.Code">
+		select code.id, title, description, html, css, javascript,
+		writerid, created_at,
+		(select count(*) from likecode where
+		codeid=code.id) likes,
+		(select user.username from user where
+		code.writerid = user.id) writername
+		from code
+		where id=#{id}
+	</select>
+
+	<insert id="addCode" parameterType="com.ssafy.edu.vue.dto.Code">
+		insert into code(title,
+		description, html, css, javascript, writerid, created_at)
+		values(#{title}, #{description}, #{html}, #{css}, #{javascript},
+		#{writerid}, now())
+	</insert>
+
+	<update id="updateCode"
+		parameterType="com.ssafy.edu.vue.dto.Code">
+		update code set
+		title=#{title},
+		description=#{description},
+		html=#{html},
+		css=#{css},
+		html=#{html},
+		javascript=#{javascript},
+		writerid=#{writerid}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteCode" parameterType="java.lang.Integer">
+		delete from code where
+		id=#{id}
+	</delete>
+
+	<insert id="addLikeCode"
+		parameterType="com.ssafy.edu.vue.dto.LikeCode">
+		insert into
+		likecode(userid, codeid)
+		values(#{userid},
+		#{codeid})
+	</insert>
+
+	<delete id="deleteLikeCode"
+		parameterType="com.ssafy.edu.vue.dto.LikeCode">
+		delete
+		from likecode
+		where userid=#{userid} and
+		codeid=#{codeid}
+	</delete>
+
+	<select id="getLikeCounts"
+		parameterType="com.ssafy.edu.vue.dto.LikeCode"
+		resultType="java.lang.Integer">
+		select count(*)
+		from likecode
+		where codeid=#{codeid}
+	</select>
+	
+	<select id="isLike" parameterType="com.ssafy.edu.vue.dto.LikeCode" resultType="java.lang.Integer">
+		select count(*) from likecode where codeid=#{codeid} and userid=#{userid}
+	</select>
+	
+	<select id="getMyCodes" parameterType="java.lang.Integer"
+		resultType="com.ssafy.edu.vue.dto.Code">
+		select id, title, description, html, css, javascript,
+		writerid, created_at,
+		(select count(*) from likecode where
+		codeid=code.id) likes,
+		(select user.username from user where
+		code.writerid = user.id) writername
+		from code
+		where writerid = #{memberid}
+		order by id desc
+	</select>
+	
+	<select id="getMyLikes" parameterType="java.lang.Integer"
+		resultType="com.ssafy.edu.vue.dto.Code">
+		select id, title, description, html, css, javascript,
+		writerid, created_at,
+		(select count(*) from likecode where
+		codeid=code.id) likes,
+		(select user.username from user where
+		code.writerid = user.id) writername
+		from code
+		where id in (select codeid from likecode where userid=#{memberid})
+		order by id desc
+	</select>
+	
+	<select id="getCommentPost" parameterType="com.ssafy.edu.vue.dto.CommentInfo" resultType="com.ssafy.edu.vue.dto.CodeComment">
+		select id,codeid,userid,created_at,content, (select user.username from user where code_comment.userid = user.id) writername
+		from code_comment
+		where codeid=#{codeid}
+		order by id desc
+	</select>
+	
+	<insert id="addCommentPost" parameterType="com.ssafy.edu.vue.dto.CodeComment">
+		insert into
+		code_comment(id,codeid,userid,created_at,content)
+		values(#{id},#{codeid},#{userid},now(), #{content})
+	</insert>
+	
+	<update id="updateCommentPost" parameterType="com.ssafy.edu.vue.dto.CodeComment">
+		update code_comment set
+		content=#{content}
+		where id=#{id}
+	</update>
+	
+	<delete id="deleteCommentPost" parameterType="java.lang.Integer">
+		delete from code_comment where id = #{id}
+	</delete>
+	
+	<select id="getCommentCounts" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from code_comment
+		where codeid=#{codeid}
+	</select>
+
+	<select id="getSearchCodes" parameterType="java.lang.String" resultType="com.ssafy.edu.vue.dto.Code">
+		select id, title, description, html, css, javascript,
+		writerid, created_at,
+		(select count(*) from likecode where
+		codeid=code.id) likes,
+		(select user.username from user where
+		code.writerid = user.id) writername
+		from code
+		where
+		<if test="keyword!=null">title like #{keyword} or description like #{keyword} or (select user.username from user where
+		code.writerid = user.id) like #{keyword}</if>
+		order by id	desc
+	</select>
+
+</mapper>
